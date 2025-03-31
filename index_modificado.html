@@ -1,0 +1,76 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Probador Virtual Materia Eyewear</title>
+  <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+  <style>
+    body { font-family: Arial; padding: 30px; text-align: center; }
+    img { max-width: 100%; margin-top: 20px; }
+    select, input, button { margin-top: 10px; padding: 8px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h1>Probador Virtual - Materia Eyewear</h1>
+  <p>Subí tu foto y elegí un modelo:</p>
+  <input type="file" id="inputImagen" accept="image/*"><br>
+  <select id="selectorModelo">
+    <option value="anteojo1.png">Animal Print</option>
+    <option value="anteojo2.png">Marfil</option>
+  </select><br>
+  <button onclick="iniciarPruebaVirtual()">Probar Anteojos</button>
+  <div id="preview"></div>
+
+  <script>
+    async function cargarModelosFaceAPI() {
+      await faceapi.nets.tinyFaceDetector.loadFromUri('./models/tiny_face_detector');
+      await faceapi.nets.faceLandmark68TinyNet.loadFromUri('./models/face_landmark_68_tiny');
+    }
+    cargarModelosFaceAPI();
+
+    async function detectarYSuperponerAnteojos(imagenUsuario, modeloAnteojoURL) {
+      const detecciones = await faceapi.detectSingleFace(imagenUsuario, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks(true);
+      if (!detecciones) {
+        alert('No se detectó un rostro válido.');
+        return null;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = imagenUsuario.width;
+      canvas.height = imagenUsuario.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(imagenUsuario, 0, 0);
+
+      const landmarks = detecciones.landmarks;
+      const ojoIzq = landmarks.getLeftEye();
+      const ojoDer = landmarks.getRightEye();
+      const xOjos = (ojoIzq[0].x + ojoDer[3].x) / 2;
+      const yOjos = (ojoIzq[0].y + ojoDer[3].y) / 2;
+      const anchoLentes = Math.abs(ojoDer[3].x - ojoIzq[0].x) * 2.1;
+
+      const imgLentes = new Image();
+      imgLentes.src = modeloAnteojoURL;
+      await new Promise((res) => imgLentes.onload = res);
+
+      ctx.drawImage(imgLentes, xOjos - anchoLentes / 2, yOjos - anchoLentes * 0.25, anchoLentes, anchoLentes * 0.4);
+      return canvas.toDataURL('image/png');
+    }
+
+    async function iniciarPruebaVirtual() {
+      const archivo = document.getElementById('inputImagen').files[0];
+      if (!archivo) return alert('Subí una imagen primero.');
+      const modeloURL = document.getElementById('selectorModelo').value;
+
+      const img = new Image();
+      img.src = URL.createObjectURL(archivo);
+      await new Promise((res) => img.onload = res);
+
+      const resultado = await detectarYSuperponerAnteojos(img, modeloURL);
+      if (resultado) {
+        document.getElementById('preview').innerHTML = `<img src="${resultado}" alt="Vista previa">`;
+      }
+    }
+  </script>
+</body>
+</html>
