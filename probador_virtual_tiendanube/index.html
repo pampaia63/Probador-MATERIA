@@ -1,0 +1,27 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Probador Virtual de Anteojos</title>
+  <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+    h2 { color: #333; }
+    #preview img { border: 1px solid #ccc; border-radius: 8px; margin-top: 15px; }
+  </style>
+</head>
+<body>
+  <h2>Probá tus anteojos antes de comprarlos</h2>
+  <p>Subí una foto de tu cara y elegí el modelo que querés ver.</p>
+  <input type="file" id="inputImagen" accept="image/*"><br><br>
+  <select id="selectorModelo">
+    <option value="anteojo1.png">Modelo 1</option>
+    <option value="anteojo2.png">Modelo 2</option>
+  </select><br><br>
+  <button onclick="iniciarPruebaVirtual()">Probar</button>
+  <div id="preview"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
